@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Participant</title>
+  <script src="https://unpkg.com/livekit-client/dist/livekit-client.min.js"></script>
+</head>
+<body>
+  <script>
+    async function connectAsAI() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const serverUrl = urlParams.get('url');
+
+      const room = new LiveKitClient.Room();
+
+      try {
+        await room.connect(serverUrl, token);
+        console.log("✅ AI participant connected");
+
+        const audioTrack = await LiveKitClient.LocalAudioTrack.createDummy();
+        const videoTrack = await LiveKitClient.LocalVideoTrack.createDummy();
+
+        await room.localParticipant.publishTrack(audioTrack);
+        await room.localParticipant.publishTrack(videoTrack);
+      } catch (err) {
+        console.error("❌ Failed to connect AI participant", err);
+      }
+    }
+
+    connectAsAI();
+  </script>
+</body>
+</html>

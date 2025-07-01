@@ -1,0 +1,8 @@
+
+project_id = "pesnfpdwcojfomspprmf"
+[functions.analyze-speech]
+verify_jwt = false
+[functions.generate-roleplay-scenario]
+verify_jwt = false
+[functions.rag-scenario-parser]
+verify_jwt = false

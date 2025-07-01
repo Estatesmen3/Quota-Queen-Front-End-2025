@@ -1,0 +1,38 @@
+
+.highlight-gradient {
+  background: linear-gradient(90deg, #8B5CF6, #EC4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.glow-on-hover {
+  transition: all 0.3s ease;
+}
+
+.glow-on-hover:hover {
+  box-shadow: 0 0 15px 5px rgba(139, 92, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.card-hover-effect {
+  transition: all 0.3s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.2);
+}
+
+.dopamine-gradient-1 {
+  background: linear-gradient(135deg, #8B5CF6, #EC4899);
+}
+
+.dopamine-gradient-2 {
+  background: linear-gradient(135deg, #EC4899, #F97316);
+}
+
+.dopamine-gradient-3 {
+  background: linear-gradient(135deg, #0EA5E9, #8B5CF6);
+}
