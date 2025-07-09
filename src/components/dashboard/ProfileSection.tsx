@@ -9,6 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import OpportunityCard from "./OpportunityCard";
 import ProgressChart from "./ProgressChart";
 import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+
+
+const tokenString = localStorage.getItem("sb-pesnfpdwcojfomspprmf-auth-token");
+const tokenObject = tokenString ? JSON.parse(tokenString) : null;
+const accessToken = tokenObject?.access_token;
+const userId = tokenObject?.user?.id;
 
 const ProfileSection = () => {
   const { profile } = useAuth();
@@ -30,7 +37,7 @@ const ProfileSection = () => {
   ]);
 
   const [animateSkills, setAnimateSkills] = useState(false);
-  
+
   // Function to update opportunities when progress changes
   const handleOpportunityUpdate = () => {
     // In a real app, this would fetch updated data from the API
@@ -42,10 +49,71 @@ const ProfileSection = () => {
     const timer = setTimeout(() => {
       setAnimateSkills(true);
     }, 500);
-    
+
     return () => clearTimeout(timer);
   }, []);
+
+  const [calls, setCalls] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const [streakDays, setStreakDays] = useState(0);
+  const [skillScores, setSkillScores] = useState({});
+
+
+  useEffect(() => {
+    const fetchCallCount = async () => {
+      const { count, error } = await supabase
+        .from('calls')
+        .select('*', { count: 'exact', head: true })
+        .eq('host_id', userId);
+
+      if (error) {
+        console.error('Error fetching call count:', error);
+      } else {
+        setCalls(count || 0);
+        console.log('Total calls for host:', count);
+      }
+    };
+
+    const fetchTotalScore = async () => {
+      const { data, error } = await supabase
+        .rpc('sum_user_score', { input_user_id: userId });
+
+      if (error) {
+        console.error('Error fetching total score:', error);
+      } else {
+        setTotalScore(data || 0);
+        console.log('Total score for user:', data);
+      }
+    };
+
+    if (userId) {
+      fetchTotalScore();
+    }
+
+
+
+    fetchCallCount();
+  }, []);
+
+
+  useEffect(() => {
+    const fetchStreak = async () => {
+      const { data, error } = await supabase
+        .rpc('get_user_call_streak', { input_host_id: userId });
   
+      if (error) {
+        console.error('Error fetching streak:', error);
+      } else {
+        console.log('Total streak days:', data);
+        setStreakDays(data || 0);
+      }
+    };
+  
+    if (userId) {
+      fetchStreak();
+    }
+  }, [userId]);
+
   // Mock data - in a real app, these would come from the backend
   const achievements = [
     { id: 1, title: "First Roleplay", completed: true },
@@ -53,19 +121,56 @@ const ProfileSection = () => {
     { id: 3, title: "Perfect Score", completed: false },
     { id: 4, title: "Top 10 Rank", completed: false },
   ];
-  
-  const skillScores = {
-    discovery: 78,
-    objectionHandling: 65,
-    closing: 92,
-    rapport: 85,
-    productKnowledge: 70,
-  };
-  
+
+  useEffect(() => {
+    const fetchResultScore = async () => {
+      const { data, error } = await supabase
+        .from('results')
+        .select('result_score')
+        .eq('user_id', userId)
+        .order('timestamp', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Error fetching result_score:', error);
+        return;
+      }
+
+      const rawScores = data?.[0]?.result_score;
+
+      if (rawScores) {
+        const parsedScores = {
+          discovery: parseInt(rawScores["Discovery"]?.percentage.replace('%', '') || '0'),
+          objectionHandling: parseInt(rawScores["Objection Handling"]?.percentage.replace('%', '') || '0'),
+          closing: parseInt(rawScores["Closing"]?.percentage.replace('%', '') || '0'),
+          rapport: parseInt(rawScores["Rapport & Agenda"]?.percentage.replace('%', '') || '0'),
+          professionalism: parseInt(rawScores["Overall Professionalism"]?.percentage.replace('%', '') || '0'),
+          presentation: parseInt(rawScores["Presentation"]?.percentage.replace('%', '') || '0'),
+          productKnowledge: parseInt(rawScores["Communication"]?.percentage.replace('%', '') || '0'),
+        };
+
+        setSkillScores(parsedScores);
+        console.log('Skill Scores:', parsedScores);
+      }
+    };
+
+    if (userId) {
+      fetchResultScore();
+    }
+  }, []);
+
+  // const skillScores = {
+  //   discovery: 78,
+  //   objectionHandling: 65,
+  //   closing: 92,
+  //   rapport: 85,
+  //   productKnowledge: 70,
+  // };
+
   const stats = [
-    { label: "Calls Completed", value: 12, icon: <CheckCircle2 className="h-4 w-4 text-green-500" /> },
-    { label: "Avg. Score", value: "82%", icon: <TrendingUp className="h-4 w-4 text-primary" /> },
-    { label: "Streak", value: "3 days", icon: <Zap className="h-4 w-4 text-amber-500" /> },
+    { label: "Calls Completed", value: calls || 0, icon: <CheckCircle2 className="h-4 w-4 text-green-500" /> },
+    { label: "Avg. Score", value: totalScore, icon: <TrendingUp className="h-4 w-4 text-primary" /> },
+    { label: "Streak", value: streakDays + " days", icon: <Zap className="h-4 w-4 text-amber-500" /> },
   ];
 
   const containerVariants = {
@@ -83,7 +188,7 @@ const ProfileSection = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { 
+      transition: {
         type: "spring",
         stiffness: 100
       }
@@ -91,14 +196,14 @@ const ProfileSection = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       {/* Profile Header */}
-      <motion.div 
+      <motion.div
         className="flex flex-col sm:flex-row items-start gap-4 sm:items-center sm:justify-between"
         variants={itemVariants}
       >
@@ -106,8 +211,8 @@ const ProfileSection = () => {
           <div className="relative">
             <div className="h-16 w-16 rounded-full bg-gradient-to-br from-dopamine-purple/20 to-dopamine-pink/20 flex items-center justify-center overflow-hidden border-2 border-primary transition-all duration-500 hover:shadow-lg hover:shadow-primary/30 cursor-pointer">
               {profile?.avatar_url ? (
-                <img 
-                  src={profile.avatar_url} 
+                <img
+                  src={profile.avatar_url}
                   alt={`${profile.first_name}'s avatar`}
                   className="h-full w-full object-cover"
                 />
@@ -117,7 +222,7 @@ const ProfileSection = () => {
                 </span>
               )}
             </div>
-            <motion.div 
+            <motion.div
               className="absolute -bottom-1 -right-1 bg-gradient-to-br from-dopamine-purple to-dopamine-pink text-white rounded-full p-1 cursor-pointer"
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
@@ -163,8 +268,8 @@ const ProfileSection = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Button 
-            className="bg-gradient-to-r from-dopamine-purple to-dopamine-pink hover:shadow-lg hover:shadow-dopamine-pink/20 transition-all duration-300" 
+          <Button
+            className="bg-gradient-to-r from-dopamine-purple to-dopamine-pink hover:shadow-lg hover:shadow-dopamine-pink/20 transition-all duration-300"
             size="sm"
           >
             <Target className="mr-1 h-4 w-4" />
@@ -174,19 +279,19 @@ const ProfileSection = () => {
       </motion.div>
 
       {/* Stats Overview */}
-      <motion.div 
+      <motion.div
         className="grid grid-cols-1 sm:grid-cols-3 gap-4"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {stats.map((stat, index) => (
-          <motion.div 
-            key={index} 
+          <motion.div
+            key={index}
             variants={itemVariants}
-            whileHover={{ 
+            whileHover={{
               y: -5,
-              transition: { duration: 0.2 } 
+              transition: { duration: 0.2 }
             }}
           >
             <Card className="overflow-hidden border-t-2 border-primary/30 shadow-sm hover:shadow-md transition-all duration-300">
@@ -205,7 +310,7 @@ const ProfileSection = () => {
       </motion.div>
 
       {/* Skill Progress and Chart */}
-      <motion.div 
+      <motion.div
         className="grid md:grid-cols-2 gap-6"
         variants={containerVariants}
         initial="hidden"
@@ -225,8 +330,8 @@ const ProfileSection = () => {
                   <span>Discovery</span>
                   <span className="font-medium">{skillScores.discovery}%</span>
                 </div>
-                <Progress 
-                  value={animateSkills ? skillScores.discovery : 0} 
+                <Progress
+                  value={animateSkills ? skillScores.discovery : 0}
                   className="h-2 bg-dopamine-blue/10"
                   style={{
                     transition: "all 1s cubic-bezier(0.65, 0, 0.35, 1)"
@@ -238,8 +343,8 @@ const ProfileSection = () => {
                   <span>Objection Handling</span>
                   <span className="font-medium">{skillScores.objectionHandling}%</span>
                 </div>
-                <Progress 
-                  value={animateSkills ? skillScores.objectionHandling : 0} 
+                <Progress
+                  value={animateSkills ? skillScores.objectionHandling : 0}
                   className="h-2 bg-dopamine-orange/10"
                   style={{
                     transition: "all 1s cubic-bezier(0.65, 0, 0.35,, 1) 0.1s"
@@ -251,8 +356,8 @@ const ProfileSection = () => {
                   <span>Closing</span>
                   <span className="font-medium highlight-gradient">{skillScores.closing}%</span>
                 </div>
-                <Progress 
-                  value={animateSkills ? skillScores.closing : 0} 
+                <Progress
+                  value={animateSkills ? skillScores.closing : 0}
                   className="h-2 bg-dopamine-purple/10"
                   style={{
                     transition: "all 1s cubic-bezier(0.65, 0, 0.35, 1) 0.2s"
@@ -264,8 +369,8 @@ const ProfileSection = () => {
                   <span>Rapport Building</span>
                   <span className="font-medium">{skillScores.rapport}%</span>
                 </div>
-                <Progress 
-                  value={animateSkills ? skillScores.rapport : 0} 
+                <Progress
+                  value={animateSkills ? skillScores.rapport : 0}
                   className="h-2 bg-dopamine-pink/10"
                   style={{
                     transition: "all 1s cubic-bezier(0.65, 0, 0.35, 1) 0.3s"
@@ -277,8 +382,8 @@ const ProfileSection = () => {
                   <span>Product Knowledge</span>
                   <span className="font-medium">{skillScores.productKnowledge}%</span>
                 </div>
-                <Progress 
-                  value={animateSkills ? skillScores.productKnowledge : 0} 
+                <Progress
+                  value={animateSkills ? skillScores.productKnowledge : 0}
                   className="h-2 bg-dopamine-blue/10"
                   style={{
                     transition: "all 1s cubic-bezier(0.65, 0, 0.35, 1) 0.4s"
@@ -288,7 +393,7 @@ const ProfileSection = () => {
             </CardContent>
           </Card>
         </motion.div>
-        
+
         <motion.div variants={itemVariants}>
           <Card className="overflow-hidden border-t-2 border-dopamine-blue/30 hover:shadow-md transition-all duration-300">
             <CardHeader className="pb-2 bg-gradient-to-r from-dopamine-blue/10 to-background">
@@ -303,7 +408,7 @@ const ProfileSection = () => {
           </Card>
         </motion.div>
       </motion.div>
-      
+
       {/* Areas of Opportunity */}
       <motion.div
         variants={containerVariants}
@@ -316,22 +421,22 @@ const ProfileSection = () => {
         </h3>
         <div className="grid md:grid-cols-2 gap-4">
           {opportunities.map((opportunity, index) => (
-            <motion.div 
+            <motion.div
               key={opportunity.id}
               variants={itemVariants}
               initial="hidden"
               animate="visible"
               transition={{ delay: index * 0.1 }}
             >
-              <OpportunityCard 
-                opportunity={opportunity} 
-                onUpdate={handleOpportunityUpdate} 
+              <OpportunityCard
+                opportunity={opportunity}
+                onUpdate={handleOpportunityUpdate}
               />
             </motion.div>
           ))}
         </div>
       </motion.div>
-      
+
       {/* Achievements */}
       <motion.div variants={itemVariants}>
         <Card className="overflow-hidden border-t-2 border-amber-500/30 hover:shadow-md transition-all duration-300">
@@ -344,35 +449,32 @@ const ProfileSection = () => {
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {achievements.map((achievement, index) => (
-                <motion.div 
+                <motion.div
                   key={achievement.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + (index * 0.1) }}
-                  whileHover={{ 
+                  whileHover={{
                     y: -5,
                     transition: { duration: 0.2 }
                   }}
                 >
-                  <div 
-                    className={`p-3 rounded-lg border text-center ${
-                      achievement.completed 
-                        ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30' 
+                  <div
+                    className={`p-3 rounded-lg border text-center ${achievement.completed
+                        ? 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30'
                         : 'bg-muted border-muted-foreground/20'
-                    } transition-all duration-500 hover:shadow-md cursor-pointer`}
+                      } transition-all duration-500 hover:shadow-md cursor-pointer`}
                   >
-                    <div className={`mx-auto mb-2 rounded-full p-2 ${
-                      achievement.completed ? 'bg-primary/20' : 'bg-muted-foreground/20'
-                    }`}>
+                    <div className={`mx-auto mb-2 rounded-full p-2 ${achievement.completed ? 'bg-primary/20' : 'bg-muted-foreground/20'
+                      }`}>
                       {achievement.completed ? (
                         <CheckCircle2 className="h-5 w-5 text-primary mx-auto" />
                       ) : (
                         <Target className="h-5 w-5 text-muted-foreground mx-auto" />
                       )}
                     </div>
-                    <p className={`text-sm font-medium ${
-                      achievement.completed ? '' : 'text-muted-foreground'
-                    }`}>
+                    <p className={`text-sm font-medium ${achievement.completed ? '' : 'text-muted-foreground'
+                      }`}>
                       {achievement.title}
                     </p>
                   </div>

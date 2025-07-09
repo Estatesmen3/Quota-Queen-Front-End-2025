@@ -55,13 +55,13 @@ const Dashboard = () => {
         <GoalsSection />
 
         <motion.div 
-          className="grid gap-6 lg:grid-cols-2"
+          className=""
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           {/* Video Call Controls */}
-          <motion.div variants={{
+          {/* <motion.div variants={{
             hidden: { y: 20, opacity: 0 },
             visible: {
               y: 0,
@@ -73,7 +73,7 @@ const Dashboard = () => {
             }
           }}>
             <CallControl />
-          </motion.div>
+          </motion.div> */}
           
           {/* Performance Library */}
           <motion.div variants={{
