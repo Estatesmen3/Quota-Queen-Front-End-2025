@@ -249,7 +249,7 @@ const SponsoredChallenges = () => {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[725px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create New Challenge...</DialogTitle>
+                <DialogTitle>Create New Challenge</DialogTitle>
                 <DialogDescription>
                   Create a new sales challenge for students to practice and showcase their skills.
                 </DialogDescription>
