@@ -32,10 +32,16 @@ export const useCallsLoadData = ({
       console.log("Loading calls for user ID:", user.id);
       
       // Use a more efficient approach with a single query and server-side joins
+      // const { data: userCalls, error: callsError } = await supabase.rpc(
+      //   'get_user_calls',
+      //   { user_id: user.id }
+      // );
+
       const { data: userCalls, error: callsError } = await supabase.rpc(
         'get_user_calls',
         { user_id: user.id }
       );
+      
       
       if (callsError) {
         console.error("Error fetching calls:", callsError);
