@@ -155,7 +155,7 @@ const SponsoredChallenges = () => {
     try {
 
 
-      const response = await axios.delete(`https://cc8f-13-59-58-130.ngrok-free.app/agents/${agentId}`);
+      const response = await axios.delete(`http://alb-tg-ec2-buyerbot-52210291.us-east-2.elb.amazonaws.com/agents/${agentId}`);
       console.log('Agent Data:', response.data);
 
       const { error } = await supabase
