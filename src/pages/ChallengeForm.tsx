@@ -115,6 +115,36 @@ const ChallengeForm = ({
           />
         </div>
 
+
+
+
+
+        <div className="grid gap-2">
+          <Label htmlFor="seller_company">Seller Company</Label>
+          <Textarea
+            id="seller_company"
+            value={formData.seller_company}
+            onChange={(e) => setFormData({ ...formData, seller_company: e.target.value })}
+            placeholder="Seller Company..."
+            className="min-h-[80px]"
+          />
+        </div>
+
+
+        <div className="grid gap-2">
+          <Label htmlFor="seller_product">Seller Product</Label>
+          <Textarea
+            id="seller_product"
+            value={formData.seller_product}
+            onChange={(e) => setFormData({ ...formData, seller_product: e.target.value })}
+            placeholder="Seller Product..."
+            className="min-h-[80px]"
+          />
+        </div>
+
+
+
+
         <div className="grid gap-2">
           <Label htmlFor="scenario_title">Challenge Title*</Label>
           <Input

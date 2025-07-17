@@ -20,6 +20,8 @@ import axios from 'axios';
 interface Challenge {
   id: string;
   company_name: string;
+  seller_company: string,
+  seller_product: string,
   product_name: string;
   scenario_title: string;
   scenario_description: string;
@@ -50,7 +52,8 @@ const SponsoredChallenges = () => {
     scenario_description: "",      // required
     industry: "",                  // required
     difficulty: "",                // required
-
+    seller_company: "",
+    seller_product: "",
     // Optional fields
     company_description: "",
     prospect_background: "",
@@ -190,6 +193,8 @@ const SponsoredChallenges = () => {
       scenario_description: "",
       industry: "",
       difficulty: "",
+      seller_company: "",
+      seller_product: "",
 
       // Optional fields
       company_description: "",
