@@ -157,13 +157,25 @@ const ChallengeForm = ({
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="scenario_description">Challenge Description*</Label>
+          <Label htmlFor="scenario_description">Challenges Faced by Prospect/Company*</Label>
           <Textarea
             id="scenario_description"
             required
             value={formData.scenario_description}
             onChange={(e) => setFormData({ ...formData, scenario_description: e.target.value })}
-            placeholder="Describe what students need to do in this challenge..."
+            placeholder="Describe the Challenges Faced By Prospect."
+            className="min-h-[100px]"
+          />
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="goals">Goals*</Label>
+          <Textarea
+            id="goals"
+            required
+            value={formData.goals}
+            onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
+            placeholder="Prospect Goals"
             className="min-h-[100px]"
           />
         </div>
@@ -273,6 +285,16 @@ const ChallengeForm = ({
             placeholder="e.g., +1 555 123 4567"
           />
         </div>
+        <div className="grid gap-2">
+          <Label htmlFor="prospect_info_personality">Prospect Personality</Label>
+          <Input
+            id="prospect_info_ personality"
+            value={formData.prospect_info?.personality || ""}
+            onChange={(e) => updateProspectInfo("personality", e.target.value)}
+            placeholder="Prospect Personality"
+          />
+        </div>
+        
 
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">

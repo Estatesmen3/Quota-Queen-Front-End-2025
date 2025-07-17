@@ -25,6 +25,7 @@ interface Challenge {
   product_name: string;
   scenario_title: string;
   scenario_description: string;
+  goals: string;
   industry: string;
   difficulty: string;
   agent_id: string;
@@ -50,6 +51,7 @@ const SponsoredChallenges = () => {
     product_name: "",              // required
     scenario_title: "",            // required
     scenario_description: "",      // required
+    goals: "",
     industry: "",                  // required
     difficulty: "",                // required
     seller_company: "",
@@ -79,7 +81,7 @@ const SponsoredChallenges = () => {
         company: "",
         roles: []
       },
-      education: "",
+      personality: "",
       pain_points: []
     },
 
@@ -191,6 +193,7 @@ const SponsoredChallenges = () => {
       product_name: "",
       scenario_title: "",
       scenario_description: "",
+      goals: "",
       industry: "",
       difficulty: "",
       seller_company: "",
@@ -221,7 +224,7 @@ const SponsoredChallenges = () => {
           company: "",
           roles: []
         },
-        education: "",
+        personality: "",
         pain_points: []
       }, null, 2),
 
