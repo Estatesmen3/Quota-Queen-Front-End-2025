@@ -17,4 +17,7 @@ export interface CreateCallData {
   scheduled_at?: string;
   call_type: string;
   participants?: string[];
+  LIVEKIT_URL?: string;
+  LIVEKIT_API_KEY?: string;
+  LIVEKIT_API_SECRET?: string;
 }

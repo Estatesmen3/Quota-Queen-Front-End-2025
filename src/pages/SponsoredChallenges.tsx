@@ -43,17 +43,13 @@ const SponsoredChallenges = () => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-
-  console.log("useruseruseruser ", user)
-
   const [formData, setFormData] = useState({
-    company_name: "",               // required
-    product_name: "",              // required
-    scenario_title: "",            // required
-    scenario_description: "",      // required
+    company_name: "",         
+    scenario_title: "",     
+    scenario_description: "",      
     goals: "",
-    industry: "",                  // required
-    difficulty: "",                // required
+    industry: "",          
+    difficulty: "",      
     seller_company: "",
     seller_product: "",
     // Optional fields
@@ -89,7 +85,7 @@ const SponsoredChallenges = () => {
     prize_amount: 0,
     start_date: new Date().toISOString().split('T')[0], // default today
     end_date: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0], // default +1 month
-    is_active: true // default active
+    is_active: false
   });
 
 
@@ -125,10 +121,6 @@ const SponsoredChallenges = () => {
 
   const updateChallengeStatus = async (id: string, is_active: boolean) => {
 
-
-    console.log("updateChallengeStatus -> ", id)
-
-
     try {
       const { error } = await supabase
         .from('sponsored_challenges')
@@ -158,7 +150,6 @@ const SponsoredChallenges = () => {
 
 
     try {
-
 
       const response = await axios.delete(`http://alb-tg-ec2-buyerbot-52210291.us-east-2.elb.amazonaws.com/agents/${agentId}`);
       console.log('Agent Data:', response.data);
@@ -190,7 +181,6 @@ const SponsoredChallenges = () => {
     setFormData({
       // Required fields
       company_name: "",
-      product_name: "",
       scenario_title: "",
       scenario_description: "",
       goals: "",
@@ -320,7 +310,7 @@ const SponsoredChallenges = () => {
             
                       <CardDescription className="mt-4 text-base">
                         <div className="mb-2">
-                          <span className="font-medium">{challenge.company_name}</span> • {challenge.product_name}
+                          <span className="font-medium">{challenge.company_name}</span> • {challenge.seller_product}
                         </div>
                         {challenge.scenario_description}
                       </CardDescription>

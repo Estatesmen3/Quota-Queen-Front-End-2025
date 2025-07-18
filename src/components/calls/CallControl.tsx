@@ -121,6 +121,7 @@ const CallControl: React.FC = () => {
           <CallInterface
             roomName={callConfig.roomName}
             token={callConfig.token}
+            // liveKitURL={callConfig.LIVEKIT_URL}
             onDisconnect={() => {
               endCall();
               setLivekitRoom(null);

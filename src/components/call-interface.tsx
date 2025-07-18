@@ -443,6 +443,7 @@ import CustomVideoConference from "./VideoConference/CustomParticipantTile"
 export interface CallInterfaceProps {
   roomName: string;
   token: string;
+  livekit_url?: string;
   onDisconnect: () => void;
   onRoomConnected?: (room: Room) => void;
 }
@@ -578,6 +579,7 @@ const CustomControls = () => {
 export const CallInterface: React.FC<CallInterfaceProps> = ({
   roomName,
   token,
+  livekit_url,
   onDisconnect,
   onRoomConnected
 }) => {
@@ -588,7 +590,7 @@ export const CallInterface: React.FC<CallInterfaceProps> = ({
       <LiveKitRoom
         roomName={roomName}
         token={token}
-        serverUrl={"wss://quota-queen-j0nxcrwr.livekit.cloud"}
+        serverUrl={livekit_url}
         connect
         video
         audio

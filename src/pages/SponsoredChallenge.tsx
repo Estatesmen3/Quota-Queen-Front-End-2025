@@ -35,6 +35,7 @@ const SponsoredChallenge   = () => {
   const [isStarting, setIsStarting] = useState(false);
   const navigate = useNavigate();
   const [livekitRoom, setLivekitRoom] = useState<Room | null>(null);
+  const [resData, setResData] = useState([])
 
   const state = location.state || JSON.parse(localStorage.getItem("challengeData") || "{}");
 
@@ -125,6 +126,8 @@ const SponsoredChallenge   = () => {
       );
     
       const data = res.data;
+      setResData(data)
+      console.log("daata handleCreateCall -< ", data)
       await handleCreateCall(data);
     
       toast({
@@ -160,6 +163,9 @@ const SponsoredChallenge   = () => {
     );
   }
 
+
+  console.log("resData _ ", resData)
+
   return (
     <DashboardLayout>
       <div className="p-6 md:p-8">
@@ -169,8 +175,9 @@ const SponsoredChallenge   = () => {
         {showCallInterface && callConfig && (
         <div className="fixed inset-0 z-50 bg-black/80 flex">
           <CallInterface
-            roomName={callConfig.roomName}
-            token={callConfig.token}
+            roomName={resData?.livekit?.roomName}
+            token={resData?.livekit?.token}
+            livekit_url={state.livekit_url}
             onDisconnect={() => {
               endCall();
               navigate("/scorecards")

@@ -147,6 +147,9 @@ export const useCallsCreate = ({
       console.log(`Bearer ${accessToken}`);
 
       console.log(`Bearer user ${user}`);
+
+      console.log(`Bearer user  callData ${JSON.stringify(callData)}`);
+
   
       const response = await apiClient.post('api/calls', {
         userId: user.id,
@@ -156,9 +159,9 @@ export const useCallsCreate = ({
         scheduledAt: callData.scheduled_at,
         callType: callData.call_type,
         participants: callData.participants,
-        LIVEKIT_URL: 'wss://quota-queen-j0nxcrwr.livekit.cloud',
-        LIVEKIT_API_KEY: 'APIWZu8Q6rooXXZ',
-        LIVEKIT_API_SECRET: 'AbatQJ9Nq1MwN2Io5Y5zn83pfcX9FNfjmm7kW1LufqIA'
+        LIVEKIT_URL: callData.LIVEKIT_URL,
+        LIVEKIT_API_KEY: callData.LIVEKIT_API_KEY,
+        LIVEKIT_API_SECRET: callData.LIVEKIT_API_SECRET,
       }, {
         headers: {
           'Content-Type': 'application/json',
