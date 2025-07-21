@@ -151,11 +151,67 @@ const ChallengeForm = ({
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="grid gap-2">
+            <Label htmlFor="seller_company">Seller Company</Label>
+            <Input
+              id="seller_company"
+              value={formData.seller_company}
+              onChange={(e) => setFormData({ ...formData, seller_company: e.target.value })}
+              placeholder="Seller Company..."
+            />
           </div>
+
+          <div className="grid gap-2">
+          <Label htmlFor="seller_product">Seller Product</Label>
+          <Input
+            id="seller_product"
+            value={formData.seller_product}
+            onChange={(e) => setFormData({ ...formData, seller_product: e.target.value })}
+            placeholder="Seller Product..."
+          />
+        </div>
+
+          </div>
+
+          <div className="grid gap-2 my-3">
+          <Label htmlFor="prospect_background">Prospect Background</Label>
+          <Textarea
+            id="prospect_background"
+            value={formData.prospect_background}
+            onChange={(e) => setFormData({ ...formData, prospect_background: e.target.value })}
+            placeholder="Describe who the prospect is and their role..."
+            className="min-h-[80px]"
+          />
+        </div>
+
+          <div className="grid gap-2 my-4">
+          <Label htmlFor="scenario_description">Challenges Faced by Prospect/Company*</Label>
+          <Textarea
+            id="scenario_description"
+            required
+            value={formData.scenario_description}
+            onChange={(e) => setFormData({ ...formData, scenario_description: e.target.value })}
+            placeholder="Describe the Challenges Faced By Prospect."
+            className="min-h-[100px]"
+          />
+        </div>
+
+        <div className="grid gap-2 my-2">
+          <Label htmlFor="goals">Goals*</Label>
+          <Textarea
+            id="goals"
+            required
+            value={formData.goals}
+            onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
+            placeholder="Prospect Goals"
+            className="min-h-[100px]"
+          />
+        </div>
         </div>
 
         {/* === Existing Form Fields (continued) === */}
-        <div className="grid md:grid-cols-2 gap-4 mt-6">
+        <div className="grid gap-4 mt-3">
           <div className="grid gap-2">
             <Label htmlFor="company_name">Company Name*</Label>
             <Input
@@ -167,26 +223,6 @@ const ChallengeForm = ({
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="seller_company">Seller Company</Label>
-            <Input
-              id="seller_company"
-              value={formData.seller_company}
-              onChange={(e) => setFormData({ ...formData, seller_company: e.target.value })}
-              placeholder="Seller Company..."
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="seller_product">Seller Product</Label>
-          <Textarea
-            id="seller_product"
-            value={formData.seller_product}
-            onChange={(e) => setFormData({ ...formData, seller_product: e.target.value })}
-            placeholder="Seller Product..."
-            className="min-h-[80px]"
-          />
         </div>
 
         <div className="grid gap-2">
@@ -211,40 +247,6 @@ const ChallengeForm = ({
           />
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="scenario_description">Challenges Faced by Prospect/Company*</Label>
-          <Textarea
-            id="scenario_description"
-            required
-            value={formData.scenario_description}
-            onChange={(e) => setFormData({ ...formData, scenario_description: e.target.value })}
-            placeholder="Describe the Challenges Faced By Prospect."
-            className="min-h-[100px]"
-          />
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="goals">Goals*</Label>
-          <Textarea
-            id="goals"
-            required
-            value={formData.goals}
-            onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
-            placeholder="Prospect Goals"
-            className="min-h-[100px]"
-          />
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="prospect_background">Prospect Background</Label>
-          <Textarea
-            id="prospect_background"
-            value={formData.prospect_background}
-            onChange={(e) => setFormData({ ...formData, prospect_background: e.target.value })}
-            placeholder="Describe who the prospect is and their role..."
-            className="min-h-[80px]"
-          />
-        </div>
 
         <div className="grid gap-2">
           <Label htmlFor="research_notes">Research Notes</Label>

@@ -164,7 +164,7 @@ const SponsoredChallenge   = () => {
   }
 
 
-  console.log("resData _ ", resData)
+  console.log("resData?.livekit?.token _ ", resData?.livekit?.token)
 
   return (
     <DashboardLayout>
@@ -172,7 +172,7 @@ const SponsoredChallenge   = () => {
         <ChallengeHeader />
 
 
-        {showCallInterface && callConfig && (
+        {showCallInterface && callConfig && resData?.livekit?.roomName && resData?.livekit?.token &&  (
         <div className="fixed inset-0 z-50 bg-black/80 flex">
           <CallInterface
             roomName={resData?.livekit?.roomName}

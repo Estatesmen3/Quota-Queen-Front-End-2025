@@ -113,7 +113,7 @@ const TranscriptionDisplay = () => {
         bottom: '0',
         left: '0',
         right: '0',
-        maxHeight: '35vh',
+        maxHeight: '30vh',
         background: '#FFFFFF33',
         padding: '1rem 2rem',
         overflowY: 'auto',
