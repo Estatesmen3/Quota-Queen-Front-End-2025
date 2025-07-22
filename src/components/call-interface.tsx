@@ -576,57 +576,6 @@ const CustomControls = () => {
   );
 };
 
-const MAX_RETRIES = 5;
-const INITIAL_DELAY_MS = 1000;
-const MAX_DELAY_MS = 30000;
-
-// export const CallInterface: React.FC<CallInterfaceProps> = ({
-//   roomName,
-//   token,
-//   livekit_url,
-//   onDisconnect,
-//   onRoomConnected
-// }) => {
-//   const { toast } = useToast();
-
-
-//   return (
-//     <div data-lk-theme="default" style={{ height: "100vh", width: "100vw", margin: "0 auto" }}>
-//       <LiveKitRoom
-//         roomName={roomName}
-//         token={token}
-//         serverUrl={livekit_url}
-//         connect
-//         video
-//         audio
-//         onConnected={(room) => {
-//           toast({ title: "Connected to meeting" });
-//           onRoomConnected?.(room);
-//         }}
-//         onDisconnected={() => {
-//           toast({ title: "Disconnected from meeting", variant: "destructive" });
-//           onDisconnect();
-//         }}
-//         onError={(error) => {
-//           toast({
-//             title: "Connection error",
-//             description: error.message,
-//             variant: "destructive"
-//           });
-//         }}
-//       >
-//         <div className="call-container">
-//           <VideoConference />
-//           {/* <CustomVideoConference /> */}
-//           <TranscriptionDisplay />
-//         </div>
-//       </LiveKitRoom>
-//     </div>
-//   );
-// };
-
-
-
 export const CallInterface: React.FC<CallInterfaceProps> = ({
   roomName,
   token,
@@ -635,91 +584,35 @@ export const CallInterface: React.FC<CallInterfaceProps> = ({
   onRoomConnected
 }) => {
   const { toast } = useToast();
-  const [shouldConnect, setShouldConnect] = useState(true);
-  const retryCountRef = useRef(0);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastErrorRef = useRef<Error | null>(null);
-
-  const cleanToken = String(token).replace(/^["\s]+|["\s]+$/g, '');
-
-  console.log("Original Token:", token);
-console.log("Cleaned Token:", cleanToken);
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleRetry = () => {
-    if (retryCountRef.current >= MAX_RETRIES) {
-      toast({
-        title: "Connection failed",
-        description: "Maximum retry attempts reached",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Calculate exponential backoff with jitter
-    const delay = Math.min(
-      INITIAL_DELAY_MS * Math.pow(2, retryCountRef.current),
-      MAX_DELAY_MS
-    ) * (0.7 + 0.6 * Math.random()); // Add jitter
-
-    timeoutRef.current = setTimeout(() => {
-      retryCountRef.current += 1;
-      setShouldConnect(true);
-    }, delay);
-  };
 
   return (
     <div data-lk-theme="default" style={{ height: "100vh", width: "100vw", margin: "0 auto" }}>
       <LiveKitRoom
         roomName={roomName}
-        token={cleanToken}
+        token={token}
         serverUrl={livekit_url}
-        connect={shouldConnect}
+        connect
         video
         audio
         onConnected={(room) => {
-          // Reset error state and retry counter
-          lastErrorRef.current = null;
-          retryCountRef.current = 0;
-          
           toast({ title: "Connected to meeting" });
           onRoomConnected?.(room);
         }}
         onDisconnected={() => {
           toast({ title: "Disconnected from meeting", variant: "destructive" });
           onDisconnect();
-          
-          // Only retry if there was a previous error
-          if (lastErrorRef.current) {
-            setShouldConnect(false);
-            handleRetry();
-          }
         }}
         onError={(error) => {
-          // Store error and trigger retry process
-          lastErrorRef.current = error;
-          setShouldConnect(false);
-          
           toast({
             title: "Connection error",
             description: error.message,
             variant: "destructive"
           });
-          
-          // Initiate retry immediately after error
-          handleRetry();
         }}
       >
         <div className="call-container">
           <VideoConference />
+          {/* <CustomVideoConference /> */}
           <TranscriptionDisplay />
         </div>
       </LiveKitRoom>
