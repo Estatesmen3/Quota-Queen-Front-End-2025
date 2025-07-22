@@ -175,6 +175,7 @@ import {
 import { PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import apiClient from '../../../apiClient';
+import { useLocation } from "react-router-dom";
 
 interface CreateCallProps {
   isCreating: boolean;
@@ -191,6 +192,7 @@ const CreateCallDialog: React.FC<CreateCallProps> = ({ isCreating, onCreateCall 
     call_type: "regular",
   });
   const [formErrors, setFormErrors] = useState({ title: false });
+  const location = useLocation();
 
   const validateForm = () => {
     const errors = { title: !newCallData.title.trim() };
@@ -215,6 +217,7 @@ const CreateCallDialog: React.FC<CreateCallProps> = ({ isCreating, onCreateCall 
       const accessToken = tokenObject?.access_token;
       const userId = tokenObject?.user?.id;
       const user = tokenObject?.user;
+      const state = location.state || JSON.parse(localStorage.getItem("challengeData") || "{}");
 
       console.log("user ID LS ", userId)
     
@@ -227,9 +230,12 @@ const CreateCallDialog: React.FC<CreateCallProps> = ({ isCreating, onCreateCall 
           description: newCallData.description,
           scheduledAt: newCallData.scheduled_at || null,
           callType: newCallData.call_type,
-          LIVEKIT_URL: 'wss://quota-queen-j0nxcrwr.livekit.cloud',
-          LIVEKIT_API_KEY: 'APIWZu8Q6rooXXZ',
-          LIVEKIT_API_SECRET: 'AbatQJ9Nq1MwN2Io5Y5zn83pfcX9FNfjmm7kW1LufqIA'
+          LIVEKIT_URL: state.livekit_url,
+          LIVEKIT_API_KEY: state.livekit_api_key,
+          LIVEKIT_API_SECRET: state.livekit_api_secret
+          // LIVEKIT_URL: 'wss://quota-queen-j0nxcrwr.livekit.cloud',
+          // LIVEKIT_API_KEY: 'APIWZu8Q6rooXXZ',
+          // LIVEKIT_API_SECRET: 'AbatQJ9Nq1MwN2Io5Y5zn83pfcX9FNfjmm7kW1LufqIA'
         },
         {
           headers: {

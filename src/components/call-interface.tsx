@@ -585,6 +585,8 @@ export const CallInterface: React.FC<CallInterfaceProps> = ({
 }) => {
   const { toast } = useToast();
 
+  console.log("roomName in call-interface ", roomName)
+
   return (
     <div data-lk-theme="default" style={{ height: "100vh", width: "100vw", margin: "0 auto" }}>
       <LiveKitRoom

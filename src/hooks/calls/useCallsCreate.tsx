@@ -170,22 +170,25 @@ export const useCallsCreate = ({
       });
   
       const { call, livekit } = response.data;
+
+
+      console.log("response.data ---- ", response.data)
   
       // For debugging only
       if (process.env.NODE_ENV === 'development') {
         await logCallsAndParticipants();
       }
 
-      const response2 = await apiClient.post(`api/scorecard/create/${user.id}/${livekit.roomName}`, {}, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
+      // const response2 = await apiClient.post(`api/scorecard/create/${user.id}/${livekit.roomName}`, {}, {
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${accessToken}`
+      //   }
+      // });
 
-      if(response2.data){
-        console.log("response2 data ", response2.data)
-      }
+      // if(response2.data){
+      //   console.log("response2 data ", response2.data)
+      // }
 
   
       // Start the AI call interface

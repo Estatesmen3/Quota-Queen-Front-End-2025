@@ -128,6 +128,21 @@ const SponsoredChallenge   = () => {
       const data = res.data;
       setResData(data)
       console.log("daata handleCreateCall -< ", data)
+
+
+      const response2 = await apiClient.post(`api/scorecard/create/${userId}/${data?.livekit?.roomName}`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if(response2.data){
+        console.log("response2 data ", response2.data)
+      }
+
+
+
       await handleCreateCall(data);
     
       toast({
