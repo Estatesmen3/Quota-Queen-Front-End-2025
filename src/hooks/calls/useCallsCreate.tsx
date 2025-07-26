@@ -171,8 +171,6 @@ export const useCallsCreate = ({
   
       const { call, livekit } = response.data;
 
-
-      console.log("response.data ---- ", response.data)
   
       // For debugging only
       if (process.env.NODE_ENV === 'development') {

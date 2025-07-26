@@ -102,8 +102,6 @@ const SponsoredChallenge   = () => {
       const accessToken = tokenObject?.access_token;
       const userId = tokenObject?.user?.id;
       const user = tokenObject?.user;
-
-      console.log("user ID LS ", userId)
     
       const res = await apiClient.post(
         'api/calls',

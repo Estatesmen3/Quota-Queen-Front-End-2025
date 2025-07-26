@@ -119,22 +119,126 @@ const SponsoredChallenges = () => {
   };
 
 
+  // const updateChallengeStatus = async (id: string, is_active: boolean) => {
+
+  //   try {
+  //     const { error } = await supabase
+  //       .from('sponsored_challenges')
+  //       .update({ is_active })
+  //       .eq('id', id);
+
+  //     if (error) throw error;
+
+  //     toast({
+  //       title: is_active ? "Challenge activated" : "Challenge deactivated",
+  //       description: is_active ? "Students can now see this challenge" : "This challenge is now hidden from students"
+  //     });
+
+  //     fetchChallenges();
+  //   } catch (error) {
+  //     console.error('Error updating challenge status:', error);
+  //     toast({
+  //       title: "Failed to update challenge",
+  //       description: "Please try again later",
+  //       variant: "destructive"
+  //     });
+  //   }
+  // };
+
+
   const updateChallengeStatus = async (id: string, is_active: boolean) => {
-
     try {
-      const { error } = await supabase
+      // Base update payload always includes is_active
+      const updatePayload: any = { is_active };
+  
+      if (is_active) {
+        // ✅ ACTIVATION LOGIC
+  
+        // Step 1: Get agent_data from DB
+        const { data: challengeData, error: fetchError } = await supabase
+          .from('sponsored_challenges')
+          .select('agent_data')
+          .eq('id', id)
+          .single();
+  
+        if (fetchError) throw fetchError;
+  
+        const agent_data = challengeData?.agent_data;
+  
+        if (!agent_data || typeof agent_data !== 'object') {
+          throw new Error("Invalid or missing agent_data");
+        }
+  
+        // Step 2: Call external agent API to create agent
+        const agentResponse = await axios.post(
+          'http://alb-tg-ec2-buyerbot-52210291.us-east-2.elb.amazonaws.com/agents',
+          agent_data
+        );
+  
+        const {
+          livekit_url,
+          livekit_api_key,
+          livekit_api_secret,
+          agent_id
+        } = agentResponse.data;
+  
+        // Step 3: Add new agent details to update payload
+        Object.assign(updatePayload, {
+          livekit_url,
+          livekit_api_key,
+          livekit_api_secret,
+          agent_id
+        });
+  
+      } else {
+        // ✅ DEACTIVATION LOGIC
+  
+        // Step 1: Fetch current agent_id from DB
+        const { data: challengeData, error: fetchError } = await supabase
+          .from('sponsored_challenges')
+          .select('agent_id')
+          .eq('id', id)
+          .single();
+  
+        if (fetchError) throw fetchError;
+  
+        const agent_id = challengeData?.agent_id;
+  
+        if (agent_id) {
+          // Step 2: Call DELETE endpoint to remove agent
+          await axios.delete(
+            `http://alb-tg-ec2-buyerbot-52210291.us-east-2.elb.amazonaws.com/agents/${agent_id}`
+          );
+        }
+  
+        // Step 3: Clear agent/livekit fields in DB
+        Object.assign(updatePayload, {
+          livekit_url: "",
+          livekit_api_key: "",
+          livekit_api_secret: "",
+          agent_id: ""
+        });
+      }
+  
+      // ✅ Final DB update
+      const { error: updateError } = await supabase
         .from('sponsored_challenges')
-        .update({ is_active })
+        .update(updatePayload)
         .eq('id', id);
-
-      if (error) throw error;
-
+  
+      if (updateError) throw updateError;
+  
+      // ✅ Show toast
       toast({
         title: is_active ? "Challenge activated" : "Challenge deactivated",
-        description: is_active ? "Students can now see this challenge" : "This challenge is now hidden from students"
+        description: is_active
+          ? "Students can now see this challenge"
+          : "This challenge is now hidden from students"
       });
-
+  
+      // ✅ Refresh
       fetchChallenges();
+  
     } catch (error) {
       console.error('Error updating challenge status:', error);
       toast({
@@ -144,7 +248,7 @@ const SponsoredChallenges = () => {
       });
     }
   };
-
+  
 
   const deleteChallengeAndAgent = async (id: string, agentId: string) => {
 
