@@ -10,12 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Plus, Trophy, Users, Calendar, DollarSign, Briefcase, Flag, Target, CheckCircle } from "lucide-react";
+import { Plus, Trophy, Users, Calendar, DollarSign, Briefcase, Flag, Target, CheckCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import ChallengeForm from "./ChallengeForm";
 import axios from 'axios';
+import apiClient from '../../apiClient';
 
 interface Challenge {
   id: string;
@@ -42,14 +43,15 @@ const SponsoredChallenges = () => {
   const { toast } = useToast();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingChallengeId, setLoadingChallengeId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    company_name: "",         
-    scenario_title: "",     
-    scenario_description: "",      
+    company_name: "",
+    scenario_title: "",
+    scenario_description: "",
     goals: "",
-    industry: "",          
-    difficulty: "",      
+    industry: "",
+    difficulty: "",
     seller_company: "",
     seller_product: "",
     // Optional fields
@@ -148,138 +150,80 @@ const SponsoredChallenges = () => {
 
   const updateChallengeStatus = async (id: string, is_active: boolean) => {
     try {
-      // Base update payload always includes is_active
-      const updatePayload: any = { is_active };
-  
-      if (is_active) {
-        // ✅ ACTIVATION LOGIC
-  
-        // Step 1: Get agent_data from DB
-        const { data: challengeData, error: fetchError } = await supabase
-          .from('sponsored_challenges')
-          .select('agent_data')
-          .eq('id', id)
-          .single();
-  
-        if (fetchError) throw fetchError;
-  
-        const agent_data = challengeData?.agent_data;
-  
-        if (!agent_data || typeof agent_data !== 'object') {
-          throw new Error("Invalid or missing agent_data");
-        }
-  
-        // Step 2: Call external agent API to create agent
-        const agentResponse = await axios.post(
-          'http://alb-tg-ec2-buyerbot-52210291.us-east-2.elb.amazonaws.com/agents',
-          agent_data
-        );
-  
-        const {
-          livekit_url,
-          livekit_api_key,
-          livekit_api_secret,
-          agent_id
-        } = agentResponse.data;
-  
-        // Step 3: Add new agent details to update payload
-        Object.assign(updatePayload, {
-          livekit_url,
-          livekit_api_key,
-          livekit_api_secret,
-          agent_id
-        });
-  
-      } else {
-        // ✅ DEACTIVATION LOGIC
-  
-        // Step 1: Fetch current agent_id from DB
-        const { data: challengeData, error: fetchError } = await supabase
-          .from('sponsored_challenges')
-          .select('agent_id')
-          .eq('id', id)
-          .single();
-  
-        if (fetchError) throw fetchError;
-  
-        const agent_id = challengeData?.agent_id;
-  
-        if (agent_id) {
-          // Step 2: Call DELETE endpoint to remove agent
-          await axios.delete(
-            `http://alb-tg-ec2-buyerbot-52210291.us-east-2.elb.amazonaws.com/agents/${agent_id}`
-          );
-        }
-  
-        // Step 3: Clear agent/livekit fields in DB
-        Object.assign(updatePayload, {
-          livekit_url: "",
-          livekit_api_key: "",
-          livekit_api_secret: "",
-          agent_id: ""
-        });
-      }
-  
-      // ✅ Final DB update
-      const { error: updateError } = await supabase
-        .from('sponsored_challenges')
-        .update(updatePayload)
-        .eq('id', id);
-  
-      if (updateError) throw updateError;
-  
-      // ✅ Show toast
+      setLoadingChallengeId(id);
+      await apiClient.post(`api/challenge/status`, { id, is_active });
       toast({
         title: is_active ? "Challenge activated" : "Challenge deactivated",
         description: is_active
           ? "Students can now see this challenge"
           : "This challenge is now hidden from students"
       });
-  
-      // ✅ Refresh
       fetchChallenges();
-  
     } catch (error) {
-      console.error('Error updating challenge status:', error);
+      console.error("Error updating challenge:", error);
       toast({
         title: "Failed to update challenge",
         description: "Please try again later",
         variant: "destructive"
       });
+    } finally {
+      setLoadingChallengeId(null);
     }
   };
-  
 
   const deleteChallengeAndAgent = async (id: string, agentId: string) => {
-
-
     try {
-
-      const response = await axios.delete(`http://alb-tg-ec2-buyerbot-52210291.us-east-2.elb.amazonaws.com/agents/${agentId}`);
-      console.log('Agent Data:', response.data);
-
-      const { error } = await supabase
-      .from('sponsored_challenges')
-      .delete()
-      .eq('id', id);    
-
-      if (error) throw error;
+      setLoadingChallengeId(id);
+      await apiClient.delete(`/api/challenge/delete/${id}/${agentId}`);
 
       toast({
         title: "Challenge Deleted",
-        description: "This challenge is now deleted"
+        description: "This challenge is now deleted",
       });
 
       fetchChallenges();
     } catch (error) {
-      console.error('Error updating challenge status:', error);
+      console.error("Error deleting challenge:", error);
       toast({
-        title: "Failed to update challenge",
+        title: "Failed to delete challenge",
         description: "Please try again later",
-        variant: "destructive"
+        variant: "destructive",
       });
+    } finally {
+      setLoadingChallengeId(null);
     }
   };
+
+
+  // const deleteChallengeAndAgent = async (id: string, agentId: string) => {
+
+
+  //   try {
+  //     const response = await axios.delete(`http://alb-tg-ec2-buyerbot-52210291.us-east-2.elb.amazonaws.com/agents/${agentId}`);
+  //     console.log('Agent Data:', response.data);
+
+  //     const { error } = await supabase
+  //       .from('sponsored_challenges')
+  //       .delete()
+  //       .eq('id', id);
+
+  //     if (error) throw error;
+
+  //     toast({
+  //       title: "Challenge Deleted",
+  //       description: "This challenge is now deleted"
+  //     });
+
+  //     fetchChallenges();
+  //   } catch (error) {
+  //     console.error('Error updating challenge status:', error);
+  //     toast({
+  //       title: "Failed to update challenge",
+  //       description: "Please try again later",
+  //       variant: "destructive"
+  //     });
+  //   }
+  // };
 
   const resetForm = () => {
     setFormData({
@@ -384,105 +328,136 @@ const SponsoredChallenges = () => {
                 <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
               </div>
             ) :
-            
-            challenges.length > 0 ? (
-              challenges.map((challenge) => (
-                <Card key={challenge.id} className="overflow-hidden mb-4">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="flex-1 p-6">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-xl font-bold">
-                            {challenge.scenario_title}
-                          </CardTitle>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            <Badge variant="outline" className="bg-primary/10 text-primary">
-                              {challenge.industry}
-                            </Badge>
-                            <Badge variant="outline" className="bg-secondary/20">
-                              {challenge.difficulty.charAt(0).toUpperCase() + 
-                               challenge.difficulty.slice(1)}
-                            </Badge>
-                            <Badge variant="outline" className="bg-green-100 text-green-800">
-                              {new Date(challenge.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                                ? 'New' 
-                                : 'Active'}
-                            </Badge>
+
+              challenges.length > 0 ? (
+                challenges
+                  .filter((challenge) => challenge.is_active === true)
+                  .map((challenge) => (
+                    <Card key={challenge.id} className="overflow-hidden mb-4">
+                      <div className="flex flex-col md:flex-row">
+                        <div className="flex-1 p-6">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <CardTitle className="text-xl font-bold">
+                                {challenge.scenario_title}
+                              </CardTitle>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                <Badge variant="outline" className="bg-primary/10 text-primary">
+                                  {challenge.industry}
+                                </Badge>
+                                <Badge variant="outline" className="bg-secondary/20">
+                                  {challenge.difficulty.charAt(0).toUpperCase() +
+                                    challenge.difficulty.slice(1)}
+                                </Badge>
+                                <Badge variant="outline" className="bg-green-100 text-green-800">
+                                  {new Date(challenge.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                                    ? 'New'
+                                    : 'Active'}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+
+                          <CardDescription className="mt-4 text-base">
+                            <div className="mb-2">
+                              <span className="font-medium">{challenge.company_name}</span> • {challenge.seller_product}
+                            </div>
+                            {challenge.scenario_description}
+                          </CardDescription>
+
+                          <div className="grid grid-cols-2 gap-4 mt-4">
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4 mr-2" />
+                              <span>
+                                Created: {new Date(challenge.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Trophy className="h-4 w-4 mr-2" />
+                              <span>
+                                {challenge.prize_description || 'No prize specified'}
+                                {challenge.prize_worth ? ` ($${challenge.prize_worth})` : ''}
+                              </span>
+                            </div>
                           </div>
                         </div>
+
+                        <div className="w-full md:w-48 p-6 bg-muted flex flex-row md:flex-col items-center justify-center gap-2">
+                          <Button variant="outline" className="w-full" size="sm"
+                            onClick={() => window.open(`/challenge/${challenge.id}`, '_blank')}>
+                            Preview
+                          </Button>
+                          <Button variant="outline" className="w-full" size="sm">
+                            View Participants
+                          </Button>
+                          {user.id === "2aae160f-d215-494a-8005-193533e0717c" && (
+                            <Button
+                              variant={challenge.is_active ? "destructive" : undefined}
+                              className={challenge.is_active ? "w-full" : "glow-on-hover w-full"}
+                              size="sm"
+                              onClick={() => updateChallengeStatus(challenge.id, !challenge.is_active)}
+                              disabled={loadingChallengeId === challenge.id}
+                            >
+                              {loadingChallengeId === challenge.id ? (
+                                <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mx-auto" />
+                              ) : challenge.is_active ? (
+                                "Deactivate"
+                              ) : (
+                                "Activate"
+                              )}
+                            </Button>
+                          )}
+
+                          {user.id === "2aae160f-d215-494a-8005-193533e0717c" && (
+                            <Button
+                              variant={challenge.is_active ? "destructive" : "default"}
+                              className={challenge.is_active ? "w-full" : "glow-on-hover w-full"}
+                              size="sm"
+                              disabled={loadingChallengeId === challenge.id}
+                              onClick={() => deleteChallengeAndAgent(challenge.id, challenge?.agent_id)}
+                            >
+                              {loadingChallengeId === challenge.id ? (
+                                <span className="flex items-center justify-center gap-2">
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Deleting
+                                </span>
+                              ) : (
+                                "Delete"
+                              )}
+                            </Button>
+                          )}
+
+                        </div>
                       </div>
-            
-                      <CardDescription className="mt-4 text-base">
-                        <div className="mb-2">
-                          <span className="font-medium">{challenge.company_name}</span> • {challenge.seller_product}
-                        </div>
-                        {challenge.scenario_description}
-                      </CardDescription>
-            
-                      <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          <span>
-                            Created: {new Date(challenge.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Trophy className="h-4 w-4 mr-2" />
-                          <span>
-                            {challenge.prize_description || 'No prize specified'} 
-                            {challenge.prize_worth ? ` ($${challenge.prize_worth})` : ''}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-            
-                    <div className="w-full md:w-48 p-6 bg-muted flex flex-row md:flex-col items-center justify-center gap-2">
-                      <Button variant="outline" className="w-full" size="sm"
-                        onClick={() => window.open(`/challenge/${challenge.id}`, '_blank')}>
-                        Preview
-                      </Button>
-                      <Button variant="outline" className="w-full" size="sm">
-                        View Participants
-                      </Button>
-                      {user.id === "2aae160f-d215-494a-8005-193533e0717c" && <Button variant={challenge.is_active && "destructive"} className={challenge.is_active ? "w-full" : "glow-on-hover w-full"} size="sm"
-                        onClick={() => updateChallengeStatus(challenge.id, !challenge.is_active)}>
-                        {challenge.is_active && "Deactivate"}
-                      </Button>}
-                      {user.id === "2aae160f-d215-494a-8005-193533e0717c" && <Button variant={challenge.is_active ? "destructive" : "default"} className={challenge.is_active ? "w-full" : "glow-on-hover w-full"} size="sm"
-                        onClick={() => deleteChallengeAndAgent(challenge.id, challenge?.agent_id)}>
-                        Delete
-                      </Button>}
-                    </div>
+                    </Card>
+                  ))
+              )
+
+                : (
+                  <div className="text-center py-12 bg-muted/30 rounded-lg">
+                    <Trophy className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No active challenges</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      You don't have any active challenges yet. Create a new challenge to engage with students.
+                    </p>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="mt-4">
+                          <Plus className="mr-2 h-4 w-4" />
+                          New Challenge
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[725px] max-h-[90vh] overflow-y-auto">
+                        <ChallengeForm
+                          formData={formData}
+                          setFormData={setFormData}
+                          resetForm={resetForm}
+                          fetchChallenges={fetchChallenges}
+                        />
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                </Card>
-              ))
-            )
-            
-            : (
-              <div className="text-center py-12 bg-muted/30 rounded-lg">
-                <Trophy className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No active challenges</h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  You don't have any active challenges yet. Create a new challenge to engage with students.
-                </p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="mt-4">
-                      <Plus className="mr-2 h-4 w-4" />
-                      New Challenge
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[725px] max-h-[90vh] overflow-y-auto">
-                    <ChallengeForm
-                      formData={formData}
-                      setFormData={setFormData}
-                      resetForm={resetForm}
-                      fetchChallenges={fetchChallenges}
-                    />
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )}
+                )}
           </TabsContent>
 
           <TabsContent value="past" className="space-y-4 mt-6">
@@ -541,10 +516,19 @@ const SponsoredChallenges = () => {
                       <Button variant="outline" className="w-full" size="sm">
                         View Results
                       </Button>
-                      <Button className="w-full" size="sm"
-                        onClick={() => updateChallengeStatus(challenge.id, !challenge.is_active)}>
-                        Reactivate
+                      <Button
+                        className="w-full"
+                        size="sm"
+                        onClick={() => updateChallengeStatus(challenge.id, !challenge.is_active)}
+                        disabled={loadingChallengeId === challenge.id}
+                      >
+                        {loadingChallengeId === challenge.id ? (
+                          <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mx-auto" />
+                        ) : (
+                          "Reactivate"
+                        )}
                       </Button>
+
                     </div>
                   </div>
                 </Card>
