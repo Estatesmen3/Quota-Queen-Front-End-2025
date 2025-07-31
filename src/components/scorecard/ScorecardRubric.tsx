@@ -114,6 +114,17 @@ export const ScorecardRubric = () => {
     timestamp: string 
   }) => {
     setActiveResult(result);
+
+    console.log("result? 1 ", result)
+
+    console.log("result?.result_score 1 ", result?.result_score)
+    console.log("result?.payload?.report 1 ", result?.payload)
+
+    setActiveResult({
+      result_score: result?.result_score || {},
+      payload: result?.payload || {}
+    });
+  
     setShowHistory(false);
   };
 

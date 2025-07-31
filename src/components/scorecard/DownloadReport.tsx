@@ -4,6 +4,10 @@ import html2pdf from 'html2pdf.js';
 
 const DownloadReportPDF = ({ report }) => {
   const handleDownload = () => {
+
+    console.log("report ---->>> ", report)
+
+
     const htmlContent = marked.parse(report.content);
   
     const container = document.createElement('div');
